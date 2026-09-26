@@ -3,7 +3,7 @@
 use std::time::{Duration, SystemTime};
 
 use anyhow::Context;
-use object_store::ObjectStore;
+use object_store::{ObjectStore, ObjectStoreExt};
 use sea_orm::DatabaseConnection;
 
 use crate::{

@@ -9,7 +9,8 @@ use std::{
 use anyhow::Context;
 use futures::TryStreamExt;
 use object_store::{
-    ObjectMeta, ObjectStore, PutPayload, local::LocalFileSystem, path::Path as ObjectPath,
+    ObjectMeta, ObjectStore, ObjectStoreExt, PutPayload, local::LocalFileSystem,
+    path::Path as ObjectPath,
 };
 use sea_orm::{DatabaseConnection, DbErr};
 

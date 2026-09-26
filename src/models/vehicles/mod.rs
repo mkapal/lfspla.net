@@ -17,7 +17,7 @@ use std::{path::Path, sync::Arc};
 
 use anyhow::Context;
 use insim_core::vehicle::Vehicle;
-use object_store::{ObjectStore, PutPayload, path::Path as ObjectPath};
+use object_store::{ObjectStore, ObjectStoreExt, PutPayload, path::Path as ObjectPath};
 use sea_orm::{
     ActiveValue::Set,
     ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter, QueryOrder,

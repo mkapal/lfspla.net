@@ -4,7 +4,7 @@ use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
 use lfsplanet_jobs::{Processor, Step};
-use object_store::{ObjectStore, path::Path};
+use object_store::{ObjectStore, ObjectStoreExt, path::Path};
 use sea_orm::{
     ActiveModelTrait,
     ActiveValue::Set,

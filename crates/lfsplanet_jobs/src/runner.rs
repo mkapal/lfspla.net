@@ -166,7 +166,7 @@ mod tests {
                     },
                     WorkerConfig {
                         workers: 1,
-                        poll_interval: Duration::from_secs(60),
+                        poll_interval: Duration::from_mins(1),
                     },
                 )?
                 .register(
@@ -177,7 +177,7 @@ mod tests {
                     },
                     WorkerConfig {
                         workers: 2,
-                        poll_interval: Duration::from_secs(60),
+                        poll_interval: Duration::from_mins(1),
                     },
                 )?;
             let (stop, stopped) = oneshot::channel();

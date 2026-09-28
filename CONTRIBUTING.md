@@ -15,6 +15,16 @@ prek run --all-files
 
 Run the checks that cover your change before opening a pull request.
 
+PostgreSQL regression tests are ignored by the ordinary test command. Run them
+against a disposable PostgreSQL server with a role allowed to create databases:
+
+```sh
+DATABASE_URL=postgres://user:password@localhost/test cargo test --locked -p lfsplanet database_tests -- --ignored
+```
+
+SQLx creates and migrates a separate database for each test. CI runs these tests
+against its own PostgreSQL service.
+
 ## Pull requests
 
 Keep each pull request focused on one change. Explain what changed and why.

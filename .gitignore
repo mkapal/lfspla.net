@@ -13,6 +13,7 @@ __pycache__/
 content/spr/
 content/historical/
 node_modules/
+/data/storage/
 
 # Local LFS installers and bundles used to build validator installations.
 *.exe

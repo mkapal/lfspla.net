@@ -71,7 +71,7 @@ impl From<WebhookEventKind> for WebhookEventOption {
 }
 
 #[utoipa::path(get, operation_id = "webhook_options", path = "/api/v1/me/webhooks/options", tag = "webhooks", security(("cookie_session" = [])),
-    responses((status = 200, body = WebhookOptionsResponse), (status = 401, body = ErrorResponse)))]
+    responses((status = 200, description = "Webhook configuration options", body = WebhookOptionsResponse), (status = 401, description = "Browser authentication required", body = ErrorResponse)))]
 pub(crate) async fn options(
     BrowserAuthenticatedPlayer(_player): BrowserAuthenticatedPlayer,
 ) -> Json<WebhookOptionsResponse> {
@@ -113,7 +113,7 @@ impl From<webhooks::Model> for WebhookResponse {
 }
 
 #[utoipa::path(get, operation_id = "list_webhooks", path = "/api/v1/me/webhooks", tag = "webhooks", security(("cookie_session" = [])),
-    responses((status = 200, body = ListResponse<WebhookResponse>), (status = 401, body = ErrorResponse)))]
+    responses((status = 200, description = "Configured webhooks", body = ListResponse<WebhookResponse>), (status = 401, description = "Browser authentication required", body = ErrorResponse)))]
 pub(crate) async fn list(
     State(state): State<ApiState>,
     BrowserAuthenticatedPlayer(player): BrowserAuthenticatedPlayer,
@@ -131,7 +131,7 @@ pub(crate) async fn list(
 
 #[utoipa::path(post, operation_id = "create_webhook", path = "/api/v1/me/webhooks", tag = "webhooks", security(("cookie_session" = [])),
     params(("X-CSRF-Token" = String, Header)), request_body = CreateWebhookRequest,
-    responses((status = 201, body = WebhookResponse), (status = 400, body = ErrorResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 409, body = ErrorResponse)))]
+    responses((status = 201, description = "Webhook created", body = WebhookResponse), (status = 400, description = "Webhook details are invalid", body = ErrorResponse), (status = 401, description = "Browser authentication required", body = ErrorResponse), (status = 403, description = "CSRF token missing or invalid", body = ErrorResponse), (status = 409, description = "Webhook already exists", body = ErrorResponse)))]
 pub(crate) async fn create(
     State(state): State<ApiState>,
     BrowserAuthenticatedPlayer(player): BrowserAuthenticatedPlayer,
@@ -181,7 +181,7 @@ pub(crate) async fn create(
 
 #[utoipa::path(patch, operation_id = "update_webhook", path = "/api/v1/me/webhooks/{webhook}", tag = "webhooks", security(("cookie_session" = [])),
     params(("webhook" = i64, Path), ("X-CSRF-Token" = String, Header)), request_body = UpdateWebhookRequest,
-    responses((status = 200, body = WebhookResponse), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 404, body = ErrorResponse)))]
+    responses((status = 200, description = "Webhook updated", body = WebhookResponse), (status = 401, description = "Browser authentication required", body = ErrorResponse), (status = 403, description = "CSRF token missing or invalid", body = ErrorResponse), (status = 404, description = "Webhook not found", body = ErrorResponse)))]
 pub(crate) async fn update(
     Path(id): Path<i64>,
     State(state): State<ApiState>,
@@ -208,7 +208,7 @@ pub(crate) async fn update(
 
 #[utoipa::path(delete, operation_id = "delete_webhook", path = "/api/v1/me/webhooks/{webhook}", tag = "webhooks", security(("cookie_session" = [])),
     params(("webhook" = i64, Path), ("X-CSRF-Token" = String, Header)),
-    responses((status = 204), (status = 401, body = ErrorResponse), (status = 403, body = ErrorResponse), (status = 404, body = ErrorResponse)))]
+    responses((status = 204, description = "Webhook deleted"), (status = 401, description = "Browser authentication required", body = ErrorResponse), (status = 403, description = "CSRF token missing or invalid", body = ErrorResponse), (status = 404, description = "Webhook not found", body = ErrorResponse)))]
 pub(crate) async fn remove(
     Path(id): Path<i64>,
     State(state): State<ApiState>,

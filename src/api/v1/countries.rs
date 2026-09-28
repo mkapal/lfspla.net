@@ -35,7 +35,7 @@ pub(super) fn router() -> OpenApiRouter<ApiState> {
     tag = "countries",
     params(CountrySearchQuery),
     responses(
-        (status = 200, body = ListResponse<CountrySummary>)
+        (status = 200, description = "Available countries", body = ListResponse<CountrySummary>)
     )
 )]
 pub(crate) async fn list(

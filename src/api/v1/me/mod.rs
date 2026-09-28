@@ -71,7 +71,7 @@ pub(super) fn router() -> OpenApiRouter<ApiState> {
     get,
     path = "/api/v1/me",
     tag = "authentication",
-    responses((status = 200, body = MeResponse))
+    responses((status = 200, description = "Current authentication and frontend state", body = MeResponse))
 )]
 pub(crate) async fn get(
     State(state): State<ApiState>,

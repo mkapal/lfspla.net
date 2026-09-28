@@ -35,7 +35,7 @@ insim_pth = { git = "https://github.com/theangryangel/insim.rs.git", rev = "6b1e
 lfsplanet_game_version_req = { path = "crates/lfsplanet_game_version_req" }
 oauth2 = "5"
 regex = "1"
-reqwest = { version = "0.12", default-features = false }
+reqwest = { version = "0.13", default-features = false }
 sea-orm = "2"
 serde = "1"
 serde_json = "1"
@@ -64,7 +64,7 @@ lfsplanet_spr = { path = "crates/lfsplanet_spr" }
 oauth2 = { workspace = true }
 object_store = "0.12"
 rand = "0.10"
-reqwest = { workspace = true, features = ["json", "rustls-tls", "stream"] }
+reqwest = { workspace = true, features = ["json", "rustls", "stream"] }
 sea-orm = { workspace = true, features = ["macros", "runtime-tokio-rustls", "sqlx-postgres", "with-json", "with-time"] }
 serde = { workspace = true, features = ["derive"] }
 serde-saphyr = "1.1"

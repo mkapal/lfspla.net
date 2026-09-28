@@ -26,6 +26,14 @@
       "separateMultipleMajor": false
     },
     {
+      "description": "Utoipa, its Axum integration, and Swagger UI integration need coordinated upgrades.",
+      "matchManagers": ["cargo"],
+      "matchDepNames": ["utoipa", "utoipa-axum", "utoipa-swagger-ui"],
+      "groupName": "cargo:utoipa",
+      "separateMajorMinor": false,
+      "separateMultipleMajor": false
+    },
+    {
       "description": "SeaORM and the tower-sessions PostgreSQL stack share our direct SQLx dependency, so upgrade the complete stack together.",
       "matchManagers": ["cargo"],
       "matchDepNames": [

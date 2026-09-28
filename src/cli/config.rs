@@ -5,7 +5,7 @@ use std::io::Write;
 use anyhow::Context;
 use clap::{ArgGroup, Args};
 
-use crate::settings::Settings;
+use crate::settings::{NonEmptyString, OAuthSettings, PublicBaseUrl, Settings};
 
 /// Selects the defaults used in a generated configuration.
 #[derive(Clone, Debug, Eq, PartialEq, Args)]
@@ -23,13 +23,18 @@ pub struct GenerateConfigArgs {
 pub(crate) fn run(args: &GenerateConfigArgs) -> anyhow::Result<()> {
     let mut settings = Settings::default();
     if !args.production {
-        // The generated config is used by the Compose development stack.
-        settings.database.url =
-            serde_saphyr::from_str("postgresql://lfsplanet:lfsplanet@postgres:5432/lfsplanet")
-                .context("failed to construct the development database URL")?;
+        // Keep OAuth structurally configured while making setup's required edit explicit.
+        settings.lfs.oauth = Some(OAuthSettings {
+            client_id: NonEmptyString::new("REPLACE_ME"),
+            client_secret: NonEmptyString::new("REPLACE_ME"),
+        });
+        // Development services run on the host; PostgreSQL is published by Compose.
         // Browsers reach both the frontend and auth routes through Vite over HTTP.
-        settings.web.public_base_url = serde_saphyr::from_str("http://localhost:5173")
-            .context("failed to construct the development public URL")?;
+        settings.web.public_base_url = PublicBaseUrl::try_from(
+            url::Url::parse("http://localhost:5173")
+                .context("failed to parse the development public URL")?,
+        )
+        .context("invalid development public URL")?;
         settings.web.cookie_secure = false;
         settings.hotlaps.allow_test_validation = true;
     }

@@ -109,6 +109,10 @@ async fn catalogue_sync(
     database: &DatabaseConnection,
     standard_vehicle_images_dir: Option<&std::path::Path>,
 ) -> anyhow::Result<()> {
+    let client = api_client(&settings.lfs)?.context(
+        "LFS OAuth credentials are required for catalogue synchronization; configure lfs.oauth",
+    )?;
+
     tracks::sync(database)
         .await
         .context("canonical track synchronization failed")?;
@@ -123,25 +127,20 @@ async fn catalogue_sync(
         None => 0,
     };
 
-    let (mods, images) = if let Some(client) = api_client(&settings.lfs)? {
-        let previous_images = mods::image_cache_state(database)
-            .await
-            .context("Vehicle Mods image state loading failed")?;
-        let remote = client
-            .vehicle_mods()
-            .await
-            .context("Vehicle Mods catalogue refresh failed")?;
-        mods::refresh(database, &remote)
-            .await
-            .context("Vehicle Mods catalogue persistence failed")?;
-        let images = mods::cache_images(database, object_store, client, &remote, &previous_images)
-            .await
-            .context("Vehicle Mods cover synchronization failed")?;
-        (remote.len(), images)
-    } else {
-        tracing::info!("Vehicle Mods synchronization skipped without OAuth credentials");
-        (0, 0)
-    };
+    let previous_images = mods::image_cache_state(database)
+        .await
+        .context("Vehicle Mods image state loading failed")?;
+    let remote = client
+        .vehicle_mods()
+        .await
+        .context("Vehicle Mods catalogue refresh failed")?;
+    mods::refresh(database, &remote)
+        .await
+        .context("Vehicle Mods catalogue persistence failed")?;
+    let images = mods::cache_images(database, object_store, client, &remote, &previous_images)
+        .await
+        .context("Vehicle Mods cover synchronization failed")?;
+    let mods = remote.len();
 
     tracing::info!(mods, images, builtin_images, "catalogue synchronized");
     Ok(())

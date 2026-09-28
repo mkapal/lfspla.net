@@ -14,8 +14,10 @@ pub use database::DatabaseSettings;
 pub use hlvc::HlvcSettings;
 pub use hotlaps::HotlapSettings;
 pub use lfs::LfsSettings;
+pub(crate) use lfs::OAuthSettings;
 pub use lfs_runtime::LfsRuntimeSettings;
 pub use storage::StorageSettings;
+pub(crate) use types::{NonEmptyString, PublicBaseUrl};
 pub use web::WebSettings;
 pub use webhooks::WebhookSettings;
 

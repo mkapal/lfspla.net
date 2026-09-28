@@ -17,52 +17,5 @@ services:
       timeout: 2s
       retries: 30
 
-  api:
-    profiles: [containers]
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    init: true
-    working_dir: /workspace
-    command: ["bacon", "--headless", "--job", "web"]
-    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
-    environment:
-      CARGO_HOME: /workspace/.cargo
-      CARGO_TARGET_DIR: /workspace/target/docker
-    volumes:
-      - .:/workspace
-    ports:
-      - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  frontend:
-    profiles: [containers]
-    image: node:24
-    init: true
-    working_dir: /workspace/frontend2
-    command:
-      - sh
-      - -c
-      - |
-        set -e
-        lock_hash="$$(sha256sum package-lock.json | cut -d ' ' -f 1)"
-        if [ ! -f node_modules/.package-lock.sha256 ] || [ "$$(cat node_modules/.package-lock.sha256)" != "$$lock_hash" ]; then
-          npm ci
-          printf '%s\n' "$$lock_hash" > node_modules/.package-lock.sha256
-        fi
-        exec npm run dev -- --host 0.0.0.0
-    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
-    environment:
-      HOME: /tmp
-      VITE_API_PROXY_TARGET: http://api:8000
-    volumes:
-      - .:/workspace
-    ports:
-      - "5173:5173"
-    depends_on:
-      - api
-
 volumes:
   postgres-data:

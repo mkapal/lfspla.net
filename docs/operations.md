@@ -60,11 +60,10 @@ lfsplanet --config /etc/lfsplanet/config.yaml maintenance catalogue-sync --stand
 lfsplanet --config /etc/lfsplanet/config.yaml era apply /etc/lfsplanet/eras/*.yaml
 ```
 
-`catalogue-sync` adds tracks and built-in vehicles. Pass
-`--standard-vehicle-images-dir` to seed built-in image files into object
-storage. With LFS OAuth, it also refreshes Vehicle Mods. Apply `assets/eras/`
-files yourself. PostgreSQL serves
-requests; startup does not apply era files.
+`catalogue-sync` requires LFS OAuth credentials and adds tracks, built-in
+vehicles, and Vehicle Mods. Pass `--standard-vehicle-images-dir` to seed
+built-in image files into object storage. Apply `assets/eras/` files yourself.
+PostgreSQL serves requests; startup does not apply era files.
 
 ## Routine maintenance
 
@@ -79,11 +78,12 @@ lfsplanet maintenance run-all
 
 `sessions-gc` removes expired browser sessions. `access-tokens-gc` retains
 expired or revoked personal access tokens for 90 days before removal.
-`catalogue-sync` also resolves hotlaps waiting on Vehicle Mods metadata and,
-when OAuth is configured, caches covers for new Mods and new Mod revisions in
-local object storage. Failed cover downloads leave a previously cached image
-available and do not fail the catalogue refresh. The cached image revision is
-tracked separately, so a failed download is retried on the next sync.
+`catalogue-sync` requires LFS OAuth credentials. It also resolves hotlaps
+waiting on Vehicle Mods metadata and caches covers for new Mods and new Mod
+revisions in local object storage. Failed cover downloads leave a previously
+cached image available and do not fail the catalogue refresh. The cached image
+revision is tracked separately, so a failed download is retried on the next
+sync.
 
 `badges-refresh` retries persisted badge refresh requests left after interrupted
 or failed publication, deletion, imports, or era edits. Successful publication

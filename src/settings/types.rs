@@ -159,16 +159,23 @@ impl PublicBaseUrl {
     }
 }
 
+impl TryFrom<Url> for PublicBaseUrl {
+    type Error = anyhow::Error;
+
+    fn try_from(url: Url) -> Result<Self, Self::Error> {
+        anyhow::ensure!(
+            matches!(url.scheme(), "http" | "https"),
+            "must use http or https"
+        );
+        anyhow::ensure!(url.host_str().is_some(), "must include a host");
+        Ok(Self(url))
+    }
+}
+
 impl<'de> Deserialize<'de> for PublicBaseUrl {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let url = Url::deserialize(deserializer)?;
-        if !matches!(url.scheme(), "http" | "https") {
-            return Err(D::Error::custom("must use http or https"));
-        }
-        if url.host_str().is_none() {
-            return Err(D::Error::custom("must include a host"));
-        }
-        Ok(Self(url))
+        Self::try_from(url).map_err(D::Error::custom)
     }
 }
 

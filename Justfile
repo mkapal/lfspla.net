@@ -1,6 +1,4 @@
 session := "lfs-planet"
-export LOCAL_UID := `id -u`
-export LOCAL_GID := `id -g`
 
 # List available tasks.
 default:
@@ -16,33 +14,132 @@ clean:
 track-gen +paths:
     cargo run --locked -p lfsplanet_track_gen -- --output assets/tracks/ "$@"
 
-# Start the full development stack in containers.
-[arg('local', long='local', value='true', help='Run the API and frontend on the host; keep PostgreSQL in Docker')]
-dev local='false':
+# Check tools needed for local development.
+check-deps:
     #!/usr/bin/env bash
     set -euo pipefail
-    if [[ "{{local}}" != "true" ]]; then
-        exec docker compose --profile containers up --build
+    missing=0
+    if [[ -t 1 ]]; then
+        green=$'\033[32m'
+        red=$'\033[31m'
+        reset=$'\033[0m'
+    else
+        green=''
+        red=''
+        reset=''
     fi
-    if [[ ! -f planet.yaml ]]; then
-        echo "planet.yaml is missing; run 'just generate-config' first" >&2
+    check_command() {
+        label="$1"
+        command_name="$2"
+        if command -v "$command_name" >/dev/null 2>&1; then
+            version="$("$command_name" --version 2>/dev/null | head -n 1)"
+            printf '  %b✓%b %s (%s)\n' "$green" "$reset" "$label" "$version"
+        else
+            printf '  %b✗%b %s (%s)\n' "$red" "$reset" "$label" "$command_name"
+            missing=1
+        fi
+    }
+    printf 'Checking development prerequisites...\n'
+    check_command "Rust compiler" rustc
+    check_command "Cargo" cargo
+    check_command "npm" npm
+    if command -v node >/dev/null 2>&1; then
+        node_major="$(node -p 'Number(process.versions.node.split(".")[0])')"
+        if (( node_major >= 24 )); then
+            printf '  %b✓%b Node.js >=24 (%s)\n' "$green" "$reset" "$(node --version)"
+        else
+            printf '  %b✗%b Node.js >=24 (found %s)\n' "$red" "$reset" "$(node --version)"
+            missing=1
+        fi
+    else
+        printf '  %b✗%b Node.js >=24 (node)\n' "$red" "$reset"
+        missing=1
+    fi
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+        printf '  %b✓%b Docker Compose (%s)\n' "$green" "$reset" "$(docker compose version --short)"
+    else
+        printf '  %b✗%b Docker Compose plugin\n' "$red" "$reset"
+        missing=1
+    fi
+    if command -v tmux >/dev/null 2>&1; then
+        printf '  %b✓%b tmux (%s)\n' "$green" "$reset" "$(tmux -V)"
+    else
+        printf '  %b✗%b tmux\n' "$red" "$reset"
+        missing=1
+    fi
+    if command -v prek >/dev/null 2>&1; then
+        printf '  %b✓%b prek (%s)\n' "$green" "$reset" "$(prek --version)"
+    else
+        printf '  prek is recommended for repository checks and hooks\n'
+    fi
+    if command -v bacon >/dev/null 2>&1; then
+        printf '  %b✓%b Bacon (%s)\n' "$green" "$reset" "$(bacon --version)"
+    else
+        printf '  Bacon is optional; install it with cargo install --locked bacon for --watch\n'
+    fi
+    if (( missing )); then
+        echo "Install the missing prerequisites, then run 'just init' again." >&2
         exit 1
     fi
-    if ! tmux has-session -t {{session}} 2>/dev/null; then
-        lock_hash="$(sha256sum frontend2/package-lock.json | cut -d ' ' -f 1)"
-        if [[ ! -f frontend2/node_modules/.package-lock.sha256 ]] || [[ "$(cat frontend2/node_modules/.package-lock.sha256)" != "$lock_hash" ]]; then
-            npm --prefix frontend2 ci
-            printf '%s\n' "$lock_hash" > frontend2/node_modules/.package-lock.sha256
+
+# Initialize local development: config, frontend dependencies, PostgreSQL, and migrations.
+init: check-deps
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ ! -e planet.yaml ]]; then
+        just generate-config
+    fi
+    lock_hash="$(sha256sum frontend2/package-lock.json | cut -d ' ' -f 1)"
+    if [[ ! -f frontend2/node_modules/.package-lock.sha256 ]] || [[ "$(cat frontend2/node_modules/.package-lock.sha256)" != "$lock_hash" ]]; then
+        npm --prefix frontend2 ci
+        printf '%s\n' "$lock_hash" > frontend2/node_modules/.package-lock.sha256
+    fi
+    docker compose up -d --wait postgres
+    cargo run --locked -- -c planet.yaml migrate
+    printf '%s\n' \
+        "Init complete 🎉" \
+        "Next steps: " \
+        " 1. Register at https://www.lfs.net/account/api with callback http://localhost:5173/auth/lfs/callback, then replace REPLACE_ME in 'planet.yaml'." \
+        " 2. Run 'just seed' to sync all vehicles from LFS.net" \
+        " 3. Run 'just dev' (or 'just serve') and head to http://localhost:5173/"
+
+# Familiar synonym for init.
+setup: init
+
+# Familiar synonym for dev; forwards its options, including --watch.
+alias serve := dev
+
+# Start the host API and frontend; use --watch for automatic API restarts.
+[arg('watch', long='watch', short='w', value='true', help='Watch Rust files and restart the API with Bacon')]
+dev watch='false':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ ! -f planet.yaml ]]; then
+        echo "planet.yaml is missing; run 'just init' first" >&2
+        exit 1
+    fi
+    lock_hash="$(sha256sum frontend2/package-lock.json | cut -d ' ' -f 1)"
+    if [[ ! -f frontend2/node_modules/.package-lock.sha256 ]] || [[ "$(cat frontend2/node_modules/.package-lock.sha256)" != "$lock_hash" ]]; then
+        npm --prefix frontend2 ci
+        printf '%s\n' "$lock_hash" > frontend2/node_modules/.package-lock.sha256
+    fi
+    docker compose up -d --wait postgres
+    if [[ "{{watch}}" == "true" ]]; then
+        if ! command -v bacon >/dev/null 2>&1; then
+            echo "Bacon is required for watch mode; install it with 'cargo install --locked bacon'." >&2
+            exit 1
         fi
-        docker compose up -d --wait postgres
+        api_command="bacon --headless --job web"
+    else
+        api_command="cargo run --locked -- -c planet.yaml web"
+    fi
+    if ! tmux has-session -t {{session}} 2>/dev/null; then
         tmux new-session -d -s {{session}} -n "services"
         tmux send-keys -t {{session}} "docker compose logs -f postgres" C-m
         tmux split-window -h -t {{session}}
         tmux send-keys -t {{session}} "npm run dev --prefix=frontend2" C-m
         tmux split-window -v -t {{session}}
-        tmux send-keys -t {{session}} "cargo run --locked -- -c planet.yaml web" C-m
-    else
-        docker compose up -d --wait postgres
+        tmux send-keys -t {{session}} "$api_command" C-m
     fi
     tmux attach-session -t {{session}}
 
@@ -54,13 +151,28 @@ generate-config:
         echo "planet.yaml already exists; refusing to overwrite it" >&2
         exit 1
     fi
-    docker compose --profile containers run --rm --no-deps api cargo run --locked -- generate-config --development > planet.yaml
+    config_tmp="$(mktemp)"
+    trap 'rm -f "$config_tmp"' EXIT
+    cargo run --locked -- generate-config --development > "$config_tmp"
+    mv "$config_tmp" planet.yaml
 
-# Run database migrations, sync the catalogue, and apply eras in containers.
+# Run database migrations, sync the catalogue, and apply eras.
 seed:
-    docker compose --profile containers run --rm api cargo run --locked -- -c planet.yaml migrate
-    docker compose --profile containers run --rm api cargo run --locked -- -c planet.yaml maintenance catalogue-sync --standard-vehicle-images-dir assets/builtin-vehicles
-    docker compose --profile containers run --rm api cargo run --locked -- -c planet.yaml era apply assets/eras/*.yaml --yes
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ ! -f planet.yaml ]]; then
+        echo "planet.yaml is missing; run 'just init' first" >&2
+        exit 1
+    fi
+    if grep -qF 'REPLACE_ME' planet.yaml; then
+        echo "Replace the LFS OAuth REPLACE_ME values in planet.yaml before running 'just seed'." >&2
+        echo "See docs/development.md for how to register an LFS API application." >&2
+        exit 1
+    fi
+    docker compose up -d --wait postgres
+    cargo run --locked -- -c planet.yaml migrate
+    cargo run --locked -- -c planet.yaml maintenance catalogue-sync --standard-vehicle-images-dir assets/builtin-vehicles
+    cargo run --locked -- -c planet.yaml era apply assets/eras/*.yaml --yes
 
 # Build the backend and frontend, then deploy the site and eras with pyinfra.
 deploy:
@@ -74,6 +186,7 @@ deploy:
 deploy-eras:
     uv run --directory deploy --with-requirements requirements.txt pyinfra inventory.py eras.py
 
-# Run migrations against the container development database.
+# Run database migrations.
 migrate:
-    docker compose --profile containers run --rm api cargo run --locked -- -c planet.yaml migrate
+    docker compose up -d --wait postgres
+    cargo run --locked -- -c planet.yaml migrate

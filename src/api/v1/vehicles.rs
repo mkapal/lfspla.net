@@ -6,7 +6,7 @@ use axum::{
     http::{HeaderValue, StatusCode, header},
     response::Response,
 };
-use object_store::{ObjectStore, path::Path as ObjectPath};
+use object_store::{ObjectStoreExt, path::Path as ObjectPath};
 use sea_orm::{ColumnTrait, EntityTrait, QueryFilter};
 use utoipa_axum::{router::OpenApiRouter, routes};
 

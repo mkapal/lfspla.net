@@ -13,7 +13,7 @@ use axum::{
     response::IntoResponse,
 };
 use insim_core::game_version::GameVersion;
-use object_store::PutPayload;
+use object_store::{ObjectStoreExt, PutPayload};
 use sea_orm::{EntityTrait, QueryOrder};
 use serde_json::json;
 use sha2::{Digest, Sha256};
@@ -384,7 +384,7 @@ mod tests {
 
     #[tokio::test]
     async fn deleting_an_earlier_upload_preserves_identical_reuploaded_bytes() {
-        use object_store::{ObjectStore, memory::InMemory, path::Path};
+        use object_store::{memory::InMemory, path::Path};
 
         let store = InMemory::new();
         let bytes = Bytes::from_static(b"same replay");

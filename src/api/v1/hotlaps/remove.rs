@@ -4,6 +4,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
 };
+use object_store::ObjectStoreExt;
 use object_store::path::Path as ObjectPath;
 
 use crate::{

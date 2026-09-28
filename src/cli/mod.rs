@@ -37,7 +37,7 @@ pub struct Args {
 #[derive(Clone, Debug, Eq, PartialEq, Subcommand)]
 pub enum Command {
     /// Print a basic YAML configuration to standard output.
-    GenerateConfig,
+    GenerateConfig(config::GenerateConfigArgs),
     /// Apply pending database schema migrations and exit.
     Migrate,
     /// Print the OpenAPI document for the public API to standard output.

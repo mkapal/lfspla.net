@@ -18,6 +18,7 @@ storage:
   object_store_root: {{ (state_dir ~ "/spr") | tojson }}
 
 hotlaps:
+  allow_test_validation: false
   max_spr_upload_bytes: {{ max_spr_upload_bytes | tojson }}
 
 worker:

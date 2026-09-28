@@ -1,5 +1,6 @@
 .env
 /planet.yaml
+/planet.compose.yaml
 /deploy/secrets/
 .venv/
 __pycache__/
@@ -7,6 +8,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 /target/
+/.cargo/
 /openapi.json
 content/spr/
 content/historical/

@@ -10,9 +10,9 @@ service, replay validator, and maintenance jobs run as separate processes.
 
 ## Documentation
 
+- [Developer setup](docs/development.md)
 - [Docs](docs/)
 - [Contributing](CONTRIBUTING.md)
-- [Changelog](CHANGELOG.md)
 - [Security](SECURITY.md)
 
 ## Support

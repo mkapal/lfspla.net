@@ -43,7 +43,7 @@ jobs:
         run: prek run --all-files --show-diff-on-failure
       - name: Run cargo test
         run: cargo test --locked --workspace --all-targets --all-features
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
       - name: Generate OpenAPI document
@@ -61,7 +61,7 @@ jobs:
         working-directory: frontend2
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm

@@ -59,8 +59,8 @@ pub(crate) struct WebhookNotificationResponse {
     params(PaginationQuery),
     responses(
         (status = 200, description = "Current player's webhook delivery status", body = PaginatedResponse<WebhookNotificationResponse>),
-        (status = 400, body = ErrorResponse),
-        (status = 401, body = ErrorResponse)
+        (status = 400, description = "Invalid pagination", body = ErrorResponse),
+        (status = 401, description = "Browser authentication required", body = ErrorResponse)
     )
 )]
 pub(crate) async fn list(

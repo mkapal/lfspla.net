@@ -36,7 +36,7 @@ pub(super) fn router() -> OpenApiRouter<ApiState> {
 }
 
 #[utoipa::path(get, path = "/api/v1/stats", operation_id = "get_stats", tag = "stats",
-    responses((status = 200, body = StatsResponse), (status = 500, body = ErrorResponse)))]
+    responses((status = 200, description = "Site statistics", body = StatsResponse), (status = 500, description = "Statistics could not be loaded", body = ErrorResponse)))]
 pub(crate) async fn get_stats(
     State(state): State<ApiState>,
 ) -> Result<Json<StatsResponse>, ApiError> {

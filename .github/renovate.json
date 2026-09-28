@@ -3,7 +3,10 @@
   "npmrc": "allow-remote=all",
   "npmrcMerge": true,
   "cargo": {
-    "rangeStrategy": "replace"
+    "rangeStrategy": "update-lockfile"
+  },
+  "statusCheckWhen": {
+    "artifactError": "always"
   },
   "packageRules": [
     {

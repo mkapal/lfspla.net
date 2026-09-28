@@ -101,13 +101,13 @@ init: check-deps
         "Next steps: " \
         " 1. Register at https://www.lfs.net/account/api with callback http://localhost:5173/auth/lfs/callback, then replace REPLACE_ME in 'planet.yaml'." \
         " 2. Run 'just seed' to sync all vehicles from LFS.net" \
-        " 3. Run 'just dev' (or 'just serve') and head to http://localhost:5173/"
+        " 3. Run 'just dev' (or 'just start') and head to http://localhost:5173/"
 
 # Familiar synonym for init.
 setup: init
 
-# Familiar synonym for dev; forwards its options, including --watch.
-alias serve := dev
+# Familiar synonym for dev; pairs with stop and forwards options like --watch.
+alias start := dev
 
 # Start the host API and frontend; use --watch for automatic API restarts.
 [arg('watch', long='watch', short='w', value='true', help='Watch Rust files and restart the API with Bacon')]
@@ -142,6 +142,16 @@ dev watch='false':
         tmux send-keys -t {{session}} "$api_command" C-m
     fi
     tmux attach-session -t {{session}}
+
+# Stop the local API, frontend, and PostgreSQL.
+stop:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if tmux has-session -t {{session}} 2>/dev/null; then
+        tmux kill-session -t {{session}}
+    fi
+    docker compose stop postgres
+    echo "Development services stopped."
 
 # Generate a development config without overwriting an existing one.
 generate-config:

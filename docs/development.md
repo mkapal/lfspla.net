@@ -13,7 +13,7 @@ You need stable Rust, Node.js 24+, Docker Compose, `just`, and `tmux`.
   LFS.net.
 
 3. Run `just seed` to seed the database with vehicles, tracks and mods.
-4. Run `just dev` (or `just serve`)
+4. Run `just dev` (or `just start`)
 5. Open <http://localhost:5173>
 
 `just dev` opens tmux panes for PostgreSQL, Vite, and the API. To restart the

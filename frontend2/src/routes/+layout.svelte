@@ -188,11 +188,6 @@
 					>
 					<a
 						class="hover:text-foreground hover:underline"
-						href="https://github.com/theangryangel/lfspla.net/blob/main/CHANGELOG.md"
-						>Changelog</a
-					>
-					<a
-						class="hover:text-foreground hover:underline"
 						href="https://www.lfs.net/forum/565-LFS-Planet-Forum">Forum</a
 					>
 					<a

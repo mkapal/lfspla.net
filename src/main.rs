@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
     match &args.command {
-        Command::GenerateConfig => cli::config::run(),
+        Command::GenerateConfig(options) => cli::config::run(options),
         Command::Migrate => cli::migrate::run(&args).await,
         Command::Openapi => cli::openapi::run(),
         Command::Worker => cli::worker::run(&args).await,

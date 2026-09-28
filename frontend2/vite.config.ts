@@ -4,6 +4,9 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
+const apiProxyTarget =
+  process.env.VITE_API_PROXY_TARGET ?? "http://localhost:8000";
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -36,8 +39,8 @@ export default defineConfig({
     },
     proxy: {
       // API and OAuth routes are served by Rust.
-      "/api": { target: "http://localhost:8000", changeOrigin: true },
-      "/auth": { target: "http://localhost:8000", changeOrigin: true },
+      "/api": { target: apiProxyTarget, changeOrigin: true },
+      "/auth": { target: apiProxyTarget, changeOrigin: true },
     },
   },
   preview: { host: "127.0.0.1" },

@@ -91,7 +91,11 @@
 								><Table.Head class="pl-4">Track / Vehicle</Table.Head>
 								{#each [data.comparison.left.player, data.comparison.right.player] as player}
 									<Table.Head class="text-right"
-										><Flag code={player.country_code} class="mr-1" />
+										><Flag
+											code={player.flag_code}
+											fallback={player.country_code}
+											class="mr-1"
+										/>
 										<a
 											class="hover:underline"
 											href={`/drivers/${encodeURIComponent(player.lfs_username)}`}

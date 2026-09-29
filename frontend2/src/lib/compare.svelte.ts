@@ -3,7 +3,7 @@ import type { PlayerSummary } from "./api.js";
 
 export type CompareDriver = Pick<
   PlayerSummary,
-  "lfs_username" | "display_name" | "country_code"
+  "lfs_username" | "display_name" | "country_code" | "flag_code"
 >;
 const KEY = Symbol("compare");
 const STORAGE_KEY = "lfspla.compare-drivers";
@@ -25,7 +25,11 @@ export class Comparison {
         (driver.country_code === null ||
           typeof driver.country_code === "string")
       ) {
-        unique.set(driver.lfs_username.toLowerCase(), driver);
+        unique.set(driver.lfs_username.toLowerCase(), {
+          ...driver,
+          flag_code:
+            typeof driver.flag_code === "string" ? driver.flag_code : null,
+        });
       }
     }
     const next = [...unique.values()].slice(0, 2);

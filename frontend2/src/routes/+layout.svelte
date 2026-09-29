@@ -104,7 +104,8 @@
 											/>
 											<Flag
 												class="hidden sm:inline-flex"
-												code={session.player?.country_code}
+												code={session.player?.flag_code}
+												fallback={session.player?.country_code}
 											/>
 											<span class="hidden max-w-40 truncate sm:inline"
 												>{session.pending

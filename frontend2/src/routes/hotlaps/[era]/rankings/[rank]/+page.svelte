@@ -124,7 +124,10 @@
 											>
 											<Table.Cell>
 												<div class="flex min-w-0 items-center gap-1">
-													<Flag code={row.country_code} />
+													<Flag
+														code={row.flag_code}
+														fallback={row.country_code}
+													/>
 													<a
 														class="min-w-0 truncate hover:underline"
 														href="/drivers/{row.lfs_username}"

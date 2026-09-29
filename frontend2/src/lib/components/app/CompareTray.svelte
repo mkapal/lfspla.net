@@ -40,7 +40,7 @@
 						<div
 							class="flex shrink-0 items-center gap-2 rounded-md border border-border bg-background/60 py-1 pr-1 pl-2 text-sm"
 						>
-							<Flag code={driver.country_code} />
+							<Flag code={driver.flag_code} fallback={driver.country_code} />
 							<span class="max-w-40 truncate" title={driver.display_name}
 								>{driver.display_name}</span
 							>

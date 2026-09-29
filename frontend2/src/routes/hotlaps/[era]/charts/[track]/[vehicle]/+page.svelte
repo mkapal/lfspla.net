@@ -257,7 +257,10 @@
 									</Table.Cell>
 									<Table.Cell>
 										<div class="flex min-w-0 items-center gap-1">
-											<Flag code={entry.player.country_code} />
+											<Flag
+												code={entry.player.flag_code}
+												fallback={entry.player.country_code}
+											/>
 											<a
 												class="min-w-0 truncate hover:underline"
 												href="/drivers/{entry.player.lfs_username}"

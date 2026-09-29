@@ -1,5 +1,6 @@
 //! Configurable rules for aggregate rankings.
 
+use lfsplanet_flags::FlagCode;
 use sea_orm::DatabaseConnection;
 use validator::{Validate, ValidationError};
 
@@ -76,6 +77,7 @@ pub(crate) struct PersonalRankingRow {
     pub display_name: String,
     /// Validated as the row is read, like every other country column.
     pub country_code: Option<CountryCode>,
+    pub flag_code: Option<FlagCode>,
     pub completed_charts: i64,
     pub handicap_ms: i64,
 }

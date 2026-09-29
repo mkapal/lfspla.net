@@ -45,9 +45,9 @@ pub(super) async fn persist(
             r"
             INSERT INTO player (
                 lfs_username, display_name, country_code, created_at,
-                last_authenticated_at, lfsworld_id
+                last_authenticated_at, lfsworld_id, flag_code
             )
-            VALUES ($1, $1, $2, $3, NULL, $4)
+            VALUES ($1, $1, $2, $3, NULL, $4, $5)
             ON CONFLICT (LOWER(lfs_username)) DO UPDATE
             SET lfsworld_id = COALESCE(player.lfsworld_id, EXCLUDED.lfsworld_id),
                 country_code = CASE
@@ -59,6 +59,12 @@ pub(super) async fn persist(
                     -- Imports run from oldest to newest, so the latest
                     -- supplied snapshot owns an unauthenticated profile.
                     ELSE EXCLUDED.country_code
+                END,
+                flag_code = CASE
+                    -- Keep signed-in players' choices, including null.
+                    WHEN player.last_authenticated_at IS NOT NULL
+                        THEN player.flag_code
+                    ELSE EXCLUDED.flag_code
                 END
             WHERE player.lfsworld_id IS NULL
                OR player.lfsworld_id = EXCLUDED.lfsworld_id
@@ -69,6 +75,7 @@ pub(super) async fn persist(
         .bind(&player.country_code)
         .bind(player.created_at)
         .bind(player.lfsworld_id)
+        .bind(&player.flag_code)
         .fetch_optional(&mut *transaction)
         .await?
         .with_context(|| {

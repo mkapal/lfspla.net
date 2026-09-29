@@ -91,7 +91,10 @@
 							>
 							<Table.Cell>
 								<div class="flex min-w-0 items-center gap-1">
-									<Flag code={lap.player.country_code} />
+									<Flag
+										code={lap.player.flag_code}
+										fallback={lap.player.country_code}
+									/>
 									<a
 										class="min-w-0 truncate font-medium hover:underline"
 										href="/drivers/{encodeURIComponent(
@@ -160,7 +163,11 @@
 						<Table.Row>
 							<Table.Cell class="tabular-nums">{holder.position}</Table.Cell>
 							<Table.Cell>
-								<Flag code={holder.player.country_code} class="mr-1" />
+								<Flag
+									code={holder.player.flag_code}
+									fallback={holder.player.country_code}
+									class="mr-1"
+								/>
 								<a
 									class="font-medium hover:underline"
 									href="/drivers/{encodeURIComponent(

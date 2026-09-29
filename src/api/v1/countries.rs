@@ -2,6 +2,7 @@
 
 use axum::{Json, extract::Query};
 use celes::Country;
+use lfsplanet_flags::CountryFlagsExt;
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -25,7 +26,9 @@ pub(crate) struct CountrySearchQuery {
 
 /// Builds country catalogue routes.
 pub(super) fn router() -> OpenApiRouter<ApiState> {
-    OpenApiRouter::new().routes(routes!(list))
+    OpenApiRouter::new()
+        .routes(routes!(list))
+        .routes(routes!(flags))
 }
 
 #[utoipa::path(
@@ -84,5 +87,56 @@ mod tests {
         .await
         .unwrap();
         assert_eq!(response.items[0].code, "GB");
+    }
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub(crate) struct FlagSummary {
+    code: &'static str,
+    name: &'static str,
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/v1/countries/{code}/flags",
+    operation_id = "list_country_flags",
+    tag = "countries",
+    params(("code" = String, Path, description = "ISO alpha-2 country code")),
+    responses(
+        (status = 200, description = "Available display flags, national flag first", body = ListResponse<FlagSummary>),
+        (status = 400, description = "Invalid country code", body = crate::api::ErrorResponse)
+    )
+)]
+pub(crate) async fn flags(
+    axum::extract::Path(code): axum::extract::Path<String>,
+) -> Result<Json<ListResponse<FlagSummary>>, ApiError> {
+    let country = Country::from_alpha2(code.to_ascii_uppercase()).map_err(|_| {
+        ApiError::new(
+            axum::http::StatusCode::BAD_REQUEST,
+            "invalid_country_code",
+            "Choose a valid country code",
+        )
+    })?;
+    Ok(Json(ListResponse::from(
+        country
+            .flags()
+            .into_iter()
+            .map(|flag| FlagSummary {
+                code: flag.code.as_str(),
+                name: flag.name,
+            })
+            .collect::<Vec<_>>(),
+    )))
+}
+
+#[cfg(test)]
+mod flag_tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn accepts_lowercase_country_codes() {
+        let Json(response) = flags(axum::extract::Path("gb".into())).await.unwrap();
+        assert_eq!(response.items[0].code, "gb");
+        assert!(flags(axum::extract::Path("invalid".into())).await.is_err());
     }
 }

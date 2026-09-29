@@ -97,8 +97,11 @@
 											class="min-w-0 truncate hover:underline"
 											href="/drivers/{encodeURIComponent(player.lfs_username)}"
 										>
-											{#if player.country_code}
-												<Flag code={player.country_code} />
+											{#if player.flag_code || player.country_code}
+												<Flag
+													code={player.flag_code}
+													fallback={player.country_code}
+												/>
 											{:else}
 												<span class="text-muted-foreground">-</span>
 											{/if}

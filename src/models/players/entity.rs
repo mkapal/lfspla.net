@@ -1,5 +1,6 @@
 //! SeaORM entity for the `player` table.
 
+use lfsplanet_flags::FlagCode;
 use sea_orm::entity::prelude::*;
 
 use crate::models::country::CountryCode;
@@ -26,6 +27,8 @@ pub struct Model {
     /// Validated on read by [`CountryCode`], so no row loaded through this
     /// entity can carry a code that names no country.
     pub country_code: Option<CountryCode>,
+    /// Optional FlagCDN display override; null follows the country.
+    pub flag_code: Option<FlagCode>,
     /// Time at which this player was first created.
     pub created_at: TimeDateTimeWithTimeZone,
     /// Time at which LFS most recently authenticated this player.

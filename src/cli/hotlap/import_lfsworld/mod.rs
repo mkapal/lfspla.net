@@ -148,6 +148,7 @@ struct ImportedHotlap {
 struct ImportedPlayer {
     lfsworld_id: i64,
     country_code: Option<String>,
+    flag_code: Option<String>,
     created_at: OffsetDateTime,
 }
 
@@ -282,11 +283,13 @@ fn load<P: AsRef<Path>>(paths: &[P], eras: &[EraDefinition]) -> anyhow::Result<I
                     )
                 })?
                 .map(|country| country.alpha2.to_owned());
+            let flag_code = historical_flag_code(&row.country).map(str::to_owned);
             match players.entry(hotlap.lfs_username.clone()) {
                 Entry::Vacant(entry) => {
                     entry.insert(ImportedPlayer {
                         lfsworld_id: row.id,
                         country_code,
+                        flag_code,
                         created_at: hotlap.created_at,
                     });
                 }
@@ -300,6 +303,11 @@ fn load<P: AsRef<Path>>(paths: &[P], eras: &[EraDefinition]) -> anyhow::Result<I
                     ensure!(
                         player.country_code == country_code,
                         "LFSWorld username {:?} has multiple countries",
+                        hotlap.lfs_username
+                    );
+                    ensure!(
+                        player.flag_code == flag_code,
+                        "LFSWorld username {:?} has multiple display flags",
                         hotlap.lfs_username
                     );
                     player.created_at = player.created_at.min(hotlap.created_at);
@@ -445,6 +453,17 @@ fn parse_row(
     })
 }
 
+// Keep home nation flags when the country becomes GB.
+fn historical_flag_code(value: &str) -> Option<&'static str> {
+    match value {
+        "England" => Some("gb-eng"),
+        "Scotland" => Some("gb-sct"),
+        "Wales" => Some("gb-wls"),
+        "Northern Ireland" => Some("gb-nir"),
+        _ => None,
+    }
+}
+
 fn country_code(value: &str) -> anyhow::Result<Option<Country>> {
     if value.is_empty() || value == "Other" {
         return Ok(None);
@@ -486,6 +505,26 @@ fn country_code(value: &str) -> anyhow::Result<Option<Country>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn home_nation_flags_survive_country_normalisation() {
+        use lfsplanet_flags::{CountryFlagsExt, FlagCode};
+
+        for (name, expected) in [
+            ("England", "gb-eng"),
+            ("Scotland", "gb-sct"),
+            ("Wales", "gb-wls"),
+            ("Northern Ireland", "gb-nir"),
+        ] {
+            let country = country_code(name).unwrap().unwrap();
+            assert_eq!(country.alpha2, "GB");
+            assert_eq!(historical_flag_code(name), Some(expected));
+            assert!(country.allows_flag(FlagCode::parse(expected).unwrap()));
+        }
+        for name in ["United Kingdom", "Germany", "Other", "", "Yugoslavia"] {
+            assert_eq!(historical_flag_code(name), None);
+        }
+    }
 
     #[test]
     fn maps_country_names_and_deliberate_non_iso_values() {

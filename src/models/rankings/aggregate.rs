@@ -65,6 +65,7 @@ ranked AS (
         player.lfs_username,
         player.display_name,
         player.country_code,
+        player.flag_code,
         totals.completed_charts,
         totals.handicap_ms
     FROM totals

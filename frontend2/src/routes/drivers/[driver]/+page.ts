@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ depends, params, fetch, parent }) => {
       ...breadcrumbs,
       {
         label: player.display_name,
-        flag: player.country_code,
+        flag: player.flag_code ?? player.country_code,
         href: `/drivers/${encodeURIComponent(params.driver)}`,
       },
     ],

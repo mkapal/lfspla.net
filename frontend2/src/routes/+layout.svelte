@@ -193,7 +193,7 @@
 					>
 					<a
 						class="hover:text-foreground hover:underline"
-						href="https://github.com/theangryangel/lfspla.net#contributing"
+						href="https://github.com/theangryangel/lfspla.net/blob/main/CONTRIBUTING.md"
 						>Get involved</a
 					>
 				</nav>

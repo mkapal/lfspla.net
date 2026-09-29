@@ -9,7 +9,7 @@
 	import Empty from '$lib/components/app/Empty.svelte';
 	import Flag from '$lib/components/app/Flag.svelte';
 	import PaginationControls from '$lib/components/app/PaginationControls.svelte';
-	import { delta, pageItems } from '$lib/format.js';
+	import { delta, pageItems, relativeColor } from '$lib/format.js';
 	import { queryValue } from '$lib/query.js';
 	import { useSession } from '$lib/session.svelte.js';
 	import type { PageProps } from './$types';
@@ -102,8 +102,11 @@
 											<Table.Cell class="tabular-nums">
 												{row.contributing_charts.toLocaleString()} / {data.nations?.total_charts.toLocaleString()}
 											</Table.Cell>
-											<Table.Cell class="font-mono tabular-nums"
-												>{delta(row.handicap_ms)}</Table.Cell
+											<Table.Cell
+												class="font-mono tabular-nums {relativeColor(
+													row.handicap_ms,
+													0,
+												)}">{delta(row.handicap_ms)}</Table.Cell
 											>
 										</Table.Row>
 									{/each}
@@ -140,8 +143,11 @@
 											<Table.Cell class="tabular-nums">
 												{row.completed_charts.toLocaleString()} / {row.total_charts.toLocaleString()}
 											</Table.Cell>
-											<Table.Cell class="font-mono tabular-nums"
-												>{delta(row.handicap_ms)}</Table.Cell
+											<Table.Cell
+												class="font-mono tabular-nums {relativeColor(
+													row.handicap_ms,
+													0,
+												)}">{delta(row.handicap_ms)}</Table.Cell
 											>
 										</Table.Row>
 									{/each}

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { BestHotlapResponse } from '$lib/api.js';
 	import { intermediateSplits, sectorTimes } from '$lib/hotlap-comparison.js';
-	import { delta, lapTime } from '$lib/format.js';
+	import { delta, lapTime, relativeColor } from '$lib/format.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { useComparison } from '$lib/compare.svelte.js';
 	import { mergeProps } from 'bits-ui';
@@ -42,12 +42,6 @@
 			absolute: laps.map((lap) => lap.lap_time_ms),
 		},
 	]);
-	function relativeColor(time: number | undefined, other: number | undefined) {
-		if (time === undefined || other === undefined || time === other) return '';
-		return time < other
-			? 'text-green-700 dark:text-green-400'
-			: 'text-red-700 dark:text-red-400';
-	}
 	function signedDelta(ms: number) {
 		return ms === 0 ? `\u00a0${lapTime(0)}` : delta(ms);
 	}

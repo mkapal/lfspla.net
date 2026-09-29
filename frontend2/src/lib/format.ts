@@ -12,6 +12,17 @@ export function delta(ms: number | null | undefined): string {
   return sign + lapTime(Math.abs(ms));
 }
 
+/** Text color classes for `time` relative to `other`; smaller is better. */
+export function relativeColor(
+  time: number | undefined,
+  other: number | undefined,
+): string {
+  if (time === undefined || other === undefined || time === other) return "";
+  return time < other
+    ? "text-green-700 dark:text-green-400"
+    : "text-red-700 dark:text-red-400";
+}
+
 export function fileSize(bytes: number): string {
   const mebibyte = 1024 * 1024;
   return bytes < mebibyte

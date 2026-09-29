@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { invalidate } from '$app/navigation';
-	import { send } from '$lib/api.js';
+	import { getList, send, type FlagSummary } from '$lib/api.js';
 	import { useSession } from '$lib/session.svelte.js';
+	import Flag from '$lib/components/app/Flag.svelte';
 	import Panel from '$lib/components/app/Panel.svelte';
 	import SearchSelect from '$lib/components/app/SearchSelect.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -10,6 +11,37 @@
 	let { data }: PageProps = $props();
 	const session = useSession();
 	let country = $derived(session.player?.country_code ?? '');
+	let flag = $derived(session.player?.flag_code ?? '');
+	let flags = $state<FlagSummary[]>([]);
+	let loadingFlags = $state(false);
+	let flagError = $state('');
+	let retry = $state(0);
+	$effect(() => {
+		const code = country;
+		retry;
+		let cancelled = false;
+		flags = [];
+		flagError = '';
+		loadingFlags = !!code;
+		if (code) {
+			getList<FlagSummary>(
+				fetch,
+				`/api/v1/countries/${encodeURIComponent(code)}/flags`,
+			)
+				.then((choices) => {
+					if (!cancelled) flags = choices;
+				})
+				.catch(() => {
+					if (!cancelled) flagError = 'Could not load flags.';
+				})
+				.finally(() => {
+					if (!cancelled) loadingFlags = false;
+				});
+		}
+		return () => {
+			cancelled = true;
+		};
+	});
 	let pending = $state(false);
 	let error = $state('');
 	let saved = $state(false);
@@ -28,7 +60,7 @@
 			await send('/api/v1/me', {
 				method: 'PATCH',
 				csrf: session.me.csrf_token,
-				json: { country_code: country || null },
+				json: { country_code: country || null, flag_code: flag || null },
 			});
 			saved = true;
 			try {
@@ -69,6 +101,7 @@
 					placeholder="Search countries..."
 					onValueChange={(value) => {
 						country = value;
+						flag = '';
 						saved = false;
 					}}
 				/>
@@ -76,6 +109,41 @@
 					Your country appears on your driver profile and in nation rankings.
 				</p>
 			</fieldset>
+			{#if country}
+				<fieldset
+					disabled={pending || loadingFlags || !!flagError}
+					class="space-y-2"
+				>
+					<legend class="mb-2 text-sm font-medium">Display flag</legend>
+					<SearchSelect
+						label="Display flag"
+						value={flag}
+						options={[
+							{ value: '', label: 'Country flag (default)' },
+							...flags.map((choice) => ({
+								value: choice.code,
+								label: choice.name,
+							})),
+						]}
+						placeholder="Search flags..."
+						onValueChange={(value) => {
+							flag = value;
+							saved = false;
+						}}
+					/>
+					<p class="text-sm text-muted-foreground">
+						<Flag code={flag} fallback={country} /> Shown beside your name.
+					</p>
+				</fieldset>
+				{#if loadingFlags}<p role="status" class="text-sm">
+						Loading flags...
+					</p>{/if}
+				{#if flagError}<p role="alert" class="text-sm text-destructive">
+						{flagError}
+					</p>
+					<Button type="button" onclick={() => retry++}>Retry</Button>
+				{/if}
+			{/if}
 			{#if error}<p role="alert" class="text-sm text-destructive">
 					{error}
 				</p>{/if}
@@ -84,7 +152,11 @@
 				</p>{/if}
 			<Button
 				type="submit"
-				disabled={pending || country === (session.player?.country_code ?? '')}
+				disabled={pending ||
+					loadingFlags ||
+					!!flagError ||
+					(country === (session.player?.country_code ?? '') &&
+						flag === (session.player?.flag_code ?? ''))}
 				>{pending ? 'Saving...' : 'Save preferences'}</Button
 			>
 		</form>

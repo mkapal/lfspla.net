@@ -150,6 +150,7 @@ export interface PlayerSummary {
   lfs_username: string;
   display_name: string;
   country_code: string | null;
+  flag_code: string | null;
 }
 
 export type SteeringInput =
@@ -249,6 +250,7 @@ export interface PersonalRankingEntry {
   lfs_username: string;
   display_name: string;
   country_code: string | null;
+  flag_code: string | null;
   completed_charts: number;
   total_charts: number;
   handicap_ms: number;
@@ -437,6 +439,7 @@ export interface PlayerResponse {
   lfs_username: string;
   display_name: string;
   country_code: string | null;
+  flag_code: string | null;
   stats: PlayerStats;
   eras: PlayerEraStats[];
   highlights: PlayerChartResultResponse[];
@@ -528,4 +531,9 @@ export interface WebhookOptionsResponse {
     label: string;
     description: string;
   }[];
+}
+
+export interface FlagSummary {
+  code: string;
+  name: string;
 }

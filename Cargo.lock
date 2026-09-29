@@ -2206,6 +2206,7 @@ dependencies = [
  "insim",
  "insim_core",
  "itertools 0.15.0",
+ "lfsplanet_flags",
  "lfsplanet_game_version_req",
  "lfsplanet_jobs",
  "lfsplanet_lfs",
@@ -2240,6 +2241,16 @@ dependencies = [
  "utoipa-axum",
  "utoipa-swagger-ui",
  "validator",
+]
+
+[[package]]
+name = "lfsplanet_flags"
+version = "0.1.0"
+dependencies = [
+ "celes",
+ "sea-orm",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

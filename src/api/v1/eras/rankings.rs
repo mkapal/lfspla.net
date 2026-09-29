@@ -107,6 +107,8 @@ pub(crate) struct PersonalRankingEntryResponse {
     display_name: String,
     #[schema(required)]
     country_code: Option<String>,
+    #[schema(required)]
+    flag_code: Option<String>,
     completed_charts: i64,
     total_charts: usize,
     /// Sum of lap time minus the configured benchmark for each chart.
@@ -339,6 +341,7 @@ pub(crate) async fn players(
                     lfs_username: row.lfs_username,
                     display_name: row.display_name,
                     country_code: row.country_code.map(|code| code.as_str().to_owned()),
+                    flag_code: row.flag_code.map(|code| code.as_str().to_owned()),
                     completed_charts: row.completed_charts,
                     total_charts,
                     handicap_ms: row.handicap_ms,

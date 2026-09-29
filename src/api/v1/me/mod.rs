@@ -10,6 +10,7 @@ use axum::{
     http::{HeaderMap, StatusCode, header},
 };
 use celes::Country;
+use lfsplanet_flags::{CountryFlagsExt, FlagCode};
 use sea_orm::{ActiveModelTrait, ActiveValue::Set, IntoActiveModel};
 use serde::{Deserialize, Serialize};
 use tower_sessions::Session;
@@ -48,7 +49,20 @@ pub(crate) struct MeResponse {
 #[derive(Debug, Deserialize, ToSchema)]
 pub(crate) struct UpdateMeRequest {
     /// ISO 3166-1 alpha-2 nation code, or null to leave the nation unset.
-    country_code: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_patch_field")]
+    #[schema(value_type = Option<String>)]
+    country_code: Option<Option<String>>,
+    /// FlagCDN code. Null uses the country flag; omitted keeps the current choice.
+    #[serde(default, deserialize_with = "deserialize_patch_field")]
+    #[schema(value_type = Option<String>)]
+    flag_code: Option<Option<String>>,
+}
+
+// Missing leaves the field unchanged; null clears it.
+fn deserialize_patch_field<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<Option<String>>, D::Error> {
+    Option::<String>::deserialize(deserializer).map(Some)
 }
 
 pub(super) fn router() -> OpenApiRouter<ApiState> {
@@ -113,7 +127,7 @@ pub(crate) async fn get(
     request_body = UpdateMeRequest,
     responses(
         (status = 200, description = "Updated authenticated player", body = PlayerSummary),
-        (status = 400, description = "Invalid nation code", body = ErrorResponse),
+        (status = 400, description = "Invalid country or display flag", body = ErrorResponse),
         (status = 401, description = "Browser authentication required", body = ErrorResponse),
         (status = 403, description = "CSRF token missing or invalid", body = ErrorResponse)
     )
@@ -123,23 +137,11 @@ pub(crate) async fn update(
     BrowserAuthenticatedPlayer(player): BrowserAuthenticatedPlayer,
     Json(request): Json<UpdateMeRequest>,
 ) -> Result<Json<PlayerSummary>, ApiError> {
-    let country_code = request
-        .country_code
-        .as_deref()
-        .map(str::trim)
-        .map(Country::from_alpha2)
-        .transpose()
-        .map_err(|_| {
-            ApiError::new(
-                StatusCode::BAD_REQUEST,
-                "invalid_country_code",
-                "Choose a valid ISO 3166-1 nation code",
-            )
-        })?;
-    // Updated from the row the session extractor already loaded, so no second
-    // read is needed: sea-orm writes only the fields set below.
+    let (country_code, flag_code) =
+        request.resolve(player.country_code.map(|code| code.0), player.flag_code)?;
     let mut active = player.into_active_model();
     active.country_code = Set(country_code.map(CountryCode));
+    active.flag_code = Set(flag_code);
     let updated = active
         .update(&state.database)
         .await
@@ -152,4 +154,105 @@ pub(crate) async fn update(
         "personal profile updated"
     );
     Ok(Json(updated.into()))
+}
+
+impl UpdateMeRequest {
+    fn resolve(
+        self,
+        current_country: Option<Country>,
+        current_flag: Option<FlagCode>,
+    ) -> Result<(Option<Country>, Option<FlagCode>), ApiError> {
+        let country_code = match self.country_code {
+            None => current_country,
+            Some(code) => code
+                .as_deref()
+                .map(str::trim)
+                .map(|code| Country::from_alpha2(code.to_ascii_uppercase()))
+                .transpose()
+                .map_err(|_| {
+                    ApiError::new(
+                        StatusCode::BAD_REQUEST,
+                        "invalid_country_code",
+                        "Choose a valid country code",
+                    )
+                })?,
+        };
+        let flag_code = match self.flag_code {
+            Some(Some(code)) => {
+                let flag = FlagCode::parse(&code)
+                    .filter(|flag| country_code.is_some_and(|country| country.allows_flag(*flag)))
+                    .ok_or_else(|| {
+                        ApiError::new(
+                            StatusCode::BAD_REQUEST,
+                            "invalid_flag_code",
+                            "Choose a flag for your country",
+                        )
+                    })?;
+                Some(flag)
+            }
+            Some(None) => None,
+            None => current_flag
+                .filter(|flag| country_code.is_some_and(|country| country.allows_flag(*flag))),
+        };
+        Ok((country_code, flag_code))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn patch_distinguishes_missing_and_null() {
+        let gb = Some(Country::from_alpha2("GB").unwrap());
+        let request: UpdateMeRequest = serde_json::from_value(json!({})).unwrap();
+        assert_eq!(
+            request.resolve(gb, FlagCode::parse("gb-sct")).unwrap(),
+            (gb, FlagCode::parse("gb-sct"))
+        );
+        let request: UpdateMeRequest = serde_json::from_value(json!({"flag_code": null})).unwrap();
+        assert_eq!(
+            request.resolve(gb, FlagCode::parse("gb-sct")).unwrap(),
+            (gb, None)
+        );
+        let request: UpdateMeRequest =
+            serde_json::from_value(json!({"country_code": null})).unwrap();
+        assert_eq!(
+            request.resolve(gb, FlagCode::parse("gb-sct")).unwrap(),
+            (None, None)
+        );
+    }
+
+    #[test]
+    fn country_change_keeps_only_allowed_flags() {
+        let gb = Some(Country::from_alpha2("GB").unwrap());
+        for (old_flag, expected) in [("gb-sct", None), ("un", FlagCode::parse("un"))] {
+            let request: UpdateMeRequest =
+                serde_json::from_value(json!({"country_code": "NO"})).unwrap();
+            let (country, flag) = request.resolve(gb, FlagCode::parse(old_flag)).unwrap();
+            assert_eq!(country.unwrap().alpha2, "NO");
+            assert_eq!(flag, expected);
+        }
+    }
+
+    #[test]
+    fn validates_flags_for_the_new_country() {
+        for value in [
+            json!({"country_code": "US", "flag_code": "gb-sct"}),
+            json!({"country_code": "US", "flag_code": "eu"}),
+            json!({"country_code": "GB", "flag_code": "eu"}),
+            json!({"flag_code": "eu"}),
+            json!({"country_code": "GB", "flag_code": "invalid"}),
+            json!({"country_code": "invalid"}),
+        ] {
+            let request: UpdateMeRequest = serde_json::from_value(value).unwrap();
+            assert!(request.resolve(None, None).is_err());
+        }
+        let request: UpdateMeRequest =
+            serde_json::from_value(json!({"country_code": "gb", "flag_code": "GB-SCT"})).unwrap();
+        let (country, flag) = request.resolve(None, None).unwrap();
+        assert_eq!(country.unwrap().alpha2, "GB");
+        assert_eq!(flag.map(FlagCode::as_str), Some("gb-sct"));
+    }
 }

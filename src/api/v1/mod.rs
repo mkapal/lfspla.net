@@ -23,12 +23,15 @@ pub(crate) struct PlayerSummary {
     pub display_name: String,
     #[schema(example = "GB", required)]
     pub country_code: Option<String>,
+    #[schema(example = "gb-sct", required)]
+    pub flag_code: Option<String>,
 }
 
 impl From<crate::models::players::PlayerModel> for PlayerSummary {
     fn from(player: crate::models::players::PlayerModel) -> Self {
         Self {
             id: player.id,
+            flag_code: player.flag_code.map(|code| code.as_str().to_owned()),
             lfs_username: player.lfs_username,
             display_name: player.display_name,
             country_code: player

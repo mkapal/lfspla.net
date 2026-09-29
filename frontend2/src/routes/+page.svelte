@@ -72,7 +72,10 @@
 							>
 							<Table.Cell class="font-medium">
 								<div class="flex min-w-0 items-center gap-1">
-									<Flag code={lap.player.country_code} />
+									<Flag
+										code={lap.player.flag_code}
+										fallback={lap.player.country_code}
+									/>
 									<a
 										class="min-w-0 truncate hover:underline"
 										href="/drivers/{encodeURIComponent(

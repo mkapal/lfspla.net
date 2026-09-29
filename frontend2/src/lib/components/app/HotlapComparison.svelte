@@ -130,7 +130,8 @@
 										class="mx-auto flex w-fit max-w-full items-center gap-1 rounded-md border border-border bg-background/60 py-1 pr-1 pl-2 sm:gap-2"
 									>
 										<Flag
-											code={laps[index].player.country_code}
+											code={laps[index].player.flag_code}
+											fallback={laps[index].player.country_code}
 											class="hidden sm:inline-flex"
 										/>
 										<span

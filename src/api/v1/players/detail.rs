@@ -54,6 +54,8 @@ pub(crate) struct PlayerResponse {
     display_name: String,
     #[schema(required)]
     country_code: Option<String>,
+    #[schema(required)]
+    flag_code: Option<String>,
     stats: PlayerStatsResponse,
     eras: Vec<PlayerEraStatsResponse>,
     highlights: Vec<PlayerChartResultResponse>,
@@ -87,6 +89,10 @@ impl TryFrom<PlayerProfile> for PlayerResponse {
     fn try_from(profile: PlayerProfile) -> Result<Self, Self::Error> {
         Ok(PlayerResponse {
             id: profile.player.id,
+            flag_code: profile
+                .player
+                .flag_code
+                .map(|code| code.as_str().to_owned()),
             lfs_username: profile.player.lfs_username,
             display_name: profile.player.display_name,
             country_code: profile

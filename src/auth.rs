@@ -35,6 +35,7 @@ pub(crate) async fn authenticate(
         deny_auth: NotSet,
         deny_uploads: NotSet,
         country_code: NotSet,
+        flag_code: NotSet,
         created_at: NotSet,
         last_authenticated_at: Set(Some(time::OffsetDateTime::now_utc())),
         lfsworld_id: Set(Some(account.lfsworld_id)),

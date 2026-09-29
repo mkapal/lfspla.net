@@ -31,7 +31,7 @@ pub(crate) fn run(args: &GenerateConfigArgs) -> anyhow::Result<()> {
         // Development services run on the host; PostgreSQL is published by Compose.
         // Browsers reach both the frontend and auth routes through Vite over HTTP.
         settings.web.public_base_url = PublicBaseUrl::try_from(
-            url::Url::parse("http://localhost:5173")
+            url::Url::parse("http://localhost:5173/")
                 .context("failed to parse the development public URL")?,
         )
         .context("invalid development public URL")?;

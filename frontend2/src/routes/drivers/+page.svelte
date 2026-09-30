@@ -2,7 +2,7 @@
 	import { beforeNavigate } from '$app/navigation';
 	import { onDestroy } from 'svelte';
 	import CompareButton from '$lib/components/app/CompareButton.svelte';
-	import * as Card from '$lib/components/ui/card/index.js';
+	import TableFrame from '$lib/components/app/TableFrame.svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import Empty from '$lib/components/app/Empty.svelte';
@@ -75,9 +75,9 @@
 			<p>Type a username or display name to search the directory.</p>
 		</Empty>
 	{:else if data.players.length}
-		<Card.Root class="gap-0 py-0">
-			<Card.Content
-				class="px-0 [&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
+		<TableFrame>
+			<div
+				class="[&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
 			>
 				<Table.Root>
 					<Table.Caption>The first 25 matches, in username order.</Table.Caption
@@ -117,8 +117,8 @@
 						{/each}
 					</Table.Body>
 				</Table.Root>
-			</Card.Content>
-		</Card.Root>
+			</div>
+		</TableFrame>
 	{:else}
 		<Empty title="No matching drivers">
 			<p>No driver matches “{data.search}”.</p>

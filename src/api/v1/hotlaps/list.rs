@@ -73,6 +73,8 @@ pub(crate) struct HotlapQuery {
     /// Only current ranked chart personal bests; defaults to false.
     #[serde(default)]
     ranked_only: bool,
+    /// Only ranked chart personal bests at this position or better.
+    rank: Option<i64>,
     /// Only the caller's uploaded replays (requires authentication), including management details.
     #[serde(default)]
     mine: bool,
@@ -137,6 +139,11 @@ impl HotlapQuery {
             hotlaps = hotlaps.filter(sea_orm::sea_query::Expr::cust(
                 "EXISTS (SELECT 1 FROM hotlap_personal_best WHERE hotlap_id = hotlap.id)",
             ));
+        }
+        if let Some(rank) = self.rank {
+            hotlaps = hotlaps.filter(sea_orm::sea_query::Expr::cust(format!(
+                "EXISTS (SELECT 1 FROM hotlap_personal_best WHERE hotlap_id = hotlap.id AND position <= {rank})"
+            )));
         }
         Ok(hotlaps)
     }

@@ -24,6 +24,16 @@
 	const mine = $derived(queryValue('mine') === 'true');
 </script>
 
+<p class="text-sm text-muted-foreground">
+	{#if data.era.open}
+		This era is open for hotlap submissions and accepts replays recorded with
+		LFS {data.era.version_requirement}.
+	{:else}
+		This historical era accepts replays recorded with LFS
+		{data.era.version_requirement}.
+	{/if}
+</p>
+
 <div
 	class="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
 >
@@ -31,6 +41,7 @@
 		<Panel
 			title="Upload log"
 			description="Validated hotlaps in this era. Positions show current chart standings; - means the upload is not a ranked personal best."
+			flush
 		>
 			{#snippet action()}
 				<Card.Action>
@@ -50,7 +61,9 @@
 					</ToggleGroup.Root>
 				</Card.Action>
 			{/snippet}
-			<Table.Root>
+			<Table.Root
+				class="[&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4"
+			>
 				<Table.Header
 					><Table.Row>
 						<SortableHead
@@ -116,7 +129,11 @@
 							<Table.Cell>
 								<div class="flex flex-wrap gap-1">
 									{#each lap.contributes_to as ranking (ranking.id)}
-										<Badge variant="outline">{ranking.title}</Badge>
+										<Badge
+											variant="outline"
+											href={`${hotlapPath(lap.era_id)}/rankings/${encodeURIComponent(ranking.id)}`}
+											>{ranking.title}</Badge
+										>
 									{:else}
 										<span class="text-muted-foreground">-</span>
 									{/each}
@@ -139,18 +156,22 @@
 					{/each}
 				</Table.Body>
 			</Table.Root>
-			<PaginationControls
-				pagination={data.activityPagination}
-				label="hotlaps"
-			/>
+			<div class="p-4">
+				<PaginationControls
+					pagination={data.activityPagination}
+					label="hotlaps"
+				/>
+			</div>
 		</Panel>
 	</div>
 	<div class="min-w-0">
-		<Panel title="World record holders">
-			<p class="text-sm text-muted-foreground">
+		<Panel title="World record holders" flush={data.holders.length > 0}>
+			<p class="px-4 pt-4 pb-4 text-sm text-muted-foreground">
 				Current world records across this era's charts, ordered by records held.
 			</p>
-			<Table.Root>
+			<Table.Root
+				class="[&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4"
+			>
 				<Table.Header>
 					<Table.Row>
 						<Table.Head>#</Table.Head>
@@ -193,11 +214,13 @@
 					{/each}
 				</Table.Body>
 			</Table.Root>
-			<PaginationControls
-				pagination={data.pagination}
-				label="holders"
-				pageKey="wr_page"
-			/>
+			<div class="p-4">
+				<PaginationControls
+					pagination={data.pagination}
+					label="holders"
+					pageKey="wr_page"
+				/>
+			</div>
 		</Panel>
 	</div>
 </div>

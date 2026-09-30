@@ -56,6 +56,7 @@ celes = "3.0.0"
 lfsplanet_flags = { path = "crates/lfsplanet_flags", features = ["sea-orm"] }
 clap = { workspace = true, features = ["derive"] }
 csv = "1"
+fake = { version = "5", features = ["derive"] }
 futures = "0.3"
 hex = "0.4"
 insim = { workspace = true }

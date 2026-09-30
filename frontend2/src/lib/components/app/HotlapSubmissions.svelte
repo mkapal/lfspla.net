@@ -205,7 +205,11 @@
 								<Table.Cell>
 									<div class="flex flex-wrap gap-1">
 										{#each hotlap.contributes_to ?? [] as ranking (ranking.id)}
-											<Badge variant="outline">{ranking.title}</Badge>
+											<Badge
+												variant="outline"
+												href={`${hotlapPath(hotlap.era_id)}/rankings/${encodeURIComponent(ranking.id)}`}
+												>{ranking.title}</Badge
+											>
 										{:else}
 											<span class="text-muted-foreground">-</span>
 										{/each}

@@ -328,6 +328,7 @@ export interface HotlapChartResponse extends PaginatedResponse<BestHotlapRespons
   era_id: string;
   track: string;
   vehicle: string;
+  contributes_to: RankingContribution[];
 }
 
 export interface BestHotlapResponse {

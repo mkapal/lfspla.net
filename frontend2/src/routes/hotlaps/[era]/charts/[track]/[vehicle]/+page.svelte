@@ -2,6 +2,9 @@
 	import FloatingPanel from '$lib/components/app/FloatingPanel.svelte';
 	import HotlapComparison from '$lib/components/app/HotlapComparison.svelte';
 	import GitCompare from '@lucide/svelte/icons/git-compare';
+	import CircleHelpIcon from '@lucide/svelte/icons/circle-help';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { hotlapPath } from '$lib/era.js';
 	import { mergeProps } from 'bits-ui';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { intermediateSplits } from '$lib/hotlap-comparison.js';
@@ -39,6 +42,7 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+	let contributionsOpen = $state(false);
 
 	const session = useSession();
 	const entries = $derived(data.chart?.items ?? []);
@@ -132,6 +136,7 @@
 
 <div class="flex flex-wrap items-center gap-4">
 	<CombinationCard track={data.track} vehicle={data.vehicle} />
+
 	<div class="flex flex-wrap items-center gap-4 sm:ml-auto">
 		{#if record !== null}
 			<p class="text-sm text-muted-foreground">
@@ -154,6 +159,37 @@
 				options={controllerOptions}
 				onValueChange={(v) => updateQuery('controller', v)}
 			/>
+			{#if data.chart}
+				<Dialog.Root bind:open={contributionsOpen}>
+					<Dialog.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline">
+								<CircleHelpIcon />
+								Contributes to
+							</Button>
+						{/snippet}
+					</Dialog.Trigger>
+					<Dialog.Content>
+						<Dialog.Header>
+							<Dialog.Title>Contributes to</Dialog.Title>
+							<Dialog.Description>
+								Personal bests on {data.track?.code} / {data.vehicle?.code} count
+								towards these rankings in {data.era.title}.
+							</Dialog.Description>
+						</Dialog.Header>
+						<div class="flex max-h-[60vh] flex-wrap gap-2 overflow-auto">
+							{#each data.chart.contributes_to as ranking (ranking.id)}
+								<Badge
+									variant="outline"
+									href={`${hotlapPath(data.era.id)}/rankings/${encodeURIComponent(ranking.id)}`}
+									onclick={() => (contributionsOpen = false)}
+									>{ranking.title}</Badge
+								>
+							{/each}
+						</div>
+					</Dialog.Content>
+				</Dialog.Root>
+			{/if}
 			{#if filtered}
 				<Button
 					variant="ghost"

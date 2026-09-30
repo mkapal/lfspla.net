@@ -15,7 +15,7 @@
 	import DownloadIcon from '@lucide/svelte/icons/download';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Card from '$lib/components/ui/card/index.js';
+	import TableFrame from '$lib/components/app/TableFrame.svelte';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import ChoiceSelect from '$lib/components/app/ChoiceSelect.svelte';
 	import CombinationCard from '$lib/components/app/CombinationCard.svelte';
@@ -220,9 +220,9 @@
 				>
 			</Empty>
 		{:else if entries.length}
-			<Card.Root class="gap-0 py-0">
-				<Card.Content
-					class="px-0 [&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
+			<TableFrame>
+				<div
+					class="[&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
 				>
 					<Table.Root>
 						<Table.Header>
@@ -389,8 +389,8 @@
 							{/each}
 						</Table.Body>
 					</Table.Root>
-				</Card.Content>
-			</Card.Root>
+				</div>
+			</TableFrame>
 		{:else}
 			<Empty
 				title={data.chart?.pagination.total_items

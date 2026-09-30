@@ -7,6 +7,7 @@
 	import { dateTime } from '$lib/format.js';
 	import { useSession } from '$lib/session.svelte.js';
 	import Panel from '$lib/components/app/Panel.svelte';
+	import TableFrame from '$lib/components/app/TableFrame.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
@@ -169,65 +170,68 @@
 	</Panel>
 </div>
 {#if notice}<p role="status" class="text-sm">{notice}</p>{/if}
-<Panel title="Your tokens" flush={tokens.length > 0}>
+<Panel title="Your tokens" flush={tokens.length > 0} surface={false}>
 	{#if tokens.length === 0}
 		<p class="text-sm text-muted-foreground">
 			You haven’t created any personal access tokens yet.
 		</p>
 	{:else}
-		<Table.Root>
-			<Table.Header
-				><Table.Row>
-					<Table.Head>Name</Table.Head><Table.Head>Status</Table.Head
-					><Table.Head>Created</Table.Head><Table.Head>Expires</Table.Head
-					><Table.Head>Last used</Table.Head><Table.Head
-						><span class="sr-only">Actions</span></Table.Head
-					>
-				</Table.Row></Table.Header
-			>
-			<Table.Body>
-				{#each tokens as token (token.id)}
-					{@const expired = new Date(token.expires_at).getTime() <= Date.now()}
-					<Table.Row>
-						<Table.Cell
-							><div class="font-medium">{token.name}</div>
-							<code class="text-xs text-muted-foreground"
-								>{token.token_hint}</code
-							></Table.Cell
+		<TableFrame>
+			<Table.Root>
+				<Table.Header
+					><Table.Row>
+						<Table.Head>Name</Table.Head><Table.Head>Status</Table.Head
+						><Table.Head>Created</Table.Head><Table.Head>Expires</Table.Head
+						><Table.Head>Last used</Table.Head><Table.Head
+							><span class="sr-only">Actions</span></Table.Head
 						>
-						<Table.Cell
-							>{token.revoked_at
-								? 'Revoked'
-								: expired
-									? 'Expired'
-									: 'Active'}</Table.Cell
-						>
-						<Table.Cell>{dateTime(token.created_at)}</Table.Cell>
-						<Table.Cell>{dateTime(token.expires_at)}</Table.Cell>
-						<Table.Cell
-							>{token.last_used_at
-								? dateTime(token.last_used_at)
-								: 'Never'}</Table.Cell
-						>
-						<Table.Cell>
-							{#if !token.revoked_at && !expired}
-								<Button
-									variant="outline"
-									size="sm"
-									disabled={pending}
-									aria-label={`Revoke ${token.name}`}
-									onclick={() => {
-										target = token;
-										revokeError = '';
-										confirmOpen = true;
-									}}>Revoke</Button
-								>
-							{/if}
-						</Table.Cell>
-					</Table.Row>
-				{/each}
-			</Table.Body>
-		</Table.Root>
+					</Table.Row></Table.Header
+				>
+				<Table.Body>
+					{#each tokens as token (token.id)}
+						{@const expired =
+							new Date(token.expires_at).getTime() <= Date.now()}
+						<Table.Row>
+							<Table.Cell
+								><div class="font-medium">{token.name}</div>
+								<code class="text-xs text-muted-foreground"
+									>{token.token_hint}</code
+								></Table.Cell
+							>
+							<Table.Cell
+								>{token.revoked_at
+									? 'Revoked'
+									: expired
+										? 'Expired'
+										: 'Active'}</Table.Cell
+							>
+							<Table.Cell>{dateTime(token.created_at)}</Table.Cell>
+							<Table.Cell>{dateTime(token.expires_at)}</Table.Cell>
+							<Table.Cell
+								>{token.last_used_at
+									? dateTime(token.last_used_at)
+									: 'Never'}</Table.Cell
+							>
+							<Table.Cell>
+								{#if !token.revoked_at && !expired}
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={pending}
+										aria-label={`Revoke ${token.name}`}
+										onclick={() => {
+											target = token;
+											revokeError = '';
+											confirmOpen = true;
+										}}>Revoke</Button
+									>
+								{/if}
+							</Table.Cell>
+						</Table.Row>
+					{/each}
+				</Table.Body>
+			</Table.Root>
+		</TableFrame>
 	{/if}
 </Panel>
 <Dialog.Root bind:open={confirmOpen}>

@@ -1,7 +1,8 @@
 <script lang="ts">
 	import PlayerBadge from '$lib/components/app/PlayerBadge.svelte';
 	import CompareButton from '$lib/components/app/CompareButton.svelte';
-	import * as Card from '$lib/components/ui/card/index.js';
+	import TableFrame from '$lib/components/app/TableFrame.svelte';
+	import StatsBar from '$lib/components/app/StatsBar.svelte';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import Empty from '$lib/components/app/Empty.svelte';
 	import Breadcrumbs from '$lib/components/app/Breadcrumbs.svelte';
@@ -18,6 +19,15 @@
 		{ label: 'World records', value: player.stats.world_records },
 		{ label: 'Podiums', value: player.stats.podiums },
 		{ label: 'Eras', value: player.stats.eras },
+		...(player.stats.first_hotlap_at
+			? [
+					{
+						label: 'Racing here since',
+						value: dateTime(player.stats.first_hotlap_at),
+						valueFirst: false,
+					},
+				]
+			: []),
 	]);
 </script>
 
@@ -25,44 +35,22 @@
 	id="main"
 	class="mx-auto w-full max-w-screen-2xl flex-1 space-y-6 p-4 md:p-6"
 >
-	<div class="flex flex-wrap items-center justify-between gap-4 text-sm">
+	<div class="flex flex-wrap items-center gap-4 text-sm">
 		<Breadcrumbs items={data.breadcrumbs}>
 			{#snippet trailing()}
 				<CompareButton driver={player} />
 			{/snippet}
 		</Breadcrumbs>
-		{#if player.stats.first_hotlap_at}
-			<p class="ml-auto text-muted-foreground">
-				Racing here since {dateTime(player.stats.first_hotlap_at)}
-			</p>
-		{/if}
+		<StatsBar items={totals} class="ml-auto justify-end" />
 	</div>
-	<dl
-		class="grid grid-cols-2 border-y py-3 text-sm sm:flex sm:flex-wrap sm:items-center sm:gap-y-3"
-	>
-		{#each totals as total (total.label)}
-			<div
-				class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 px-4 py-1 odd:border-r last:border-r-0 sm:border-r sm:px-6 sm:py-0 sm:first:pl-0 sm:last:border-r-0"
-			>
-				<dt class="text-muted-foreground">{total.label}</dt>
-				<dd class="font-semibold tabular-nums">
-					{total.value.toLocaleString()}
-				</dd>
-			</div>
-		{/each}
-	</dl>
 
 	{#if player.eras.length}
-		<Card.Root class="gap-0 py-0">
-			<Card.Header class="pt-4">
-				<Card.Title>
-					<h2>Record by era</h2>
-				</Card.Title>
-			</Card.Header>
-			<Card.Content
-				class="px-0 [&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
-			>
-				<Table.Root>
+		<section class="space-y-3">
+			<h2 class="text-lg font-semibold">Record by era</h2>
+			<TableFrame>
+				<Table.Root
+					class="[&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
+				>
 					<Table.Header>
 						<Table.Row>
 							<Table.Head>Era</Table.Head>
@@ -104,24 +92,22 @@
 						{/each}
 					</Table.Body>
 				</Table.Root>
-			</Card.Content>
-		</Card.Root>
+			</TableFrame>
+		</section>
 	{/if}
 
-	<Card.Root class="gap-0 py-0">
-		<Card.Header class="pt-4">
-			<Card.Title>
-				<h2>Highlights</h2>
-			</Card.Title>
-			<Card.Description
-				>Current personal bests with the strongest chart positions.</Card.Description
-			>
-		</Card.Header>
-		<Card.Content
-			class="px-0 [&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
-		>
-			{#if player.highlights.length}
-				<Table.Root>
+	<section class="space-y-3">
+		<header class="space-y-1">
+			<h2 class="text-lg font-semibold">Highlights</h2>
+			<p class="text-sm text-muted-foreground">
+				Current personal bests with the strongest chart positions.
+			</p>
+		</header>
+		{#if player.highlights.length}
+			<TableFrame>
+				<Table.Root
+					class="[&_th:first-child]:pl-4 [&_td:first-child]:pl-4 [&_th:last-child]:pr-4 [&_td:last-child]:pr-4 [&_caption]:px-4 [&_caption]:pb-4"
+				>
 					<Table.Header>
 						<Table.Row>
 							<Table.Head>Chart</Table.Head>
@@ -170,11 +156,11 @@
 						{/each}
 					</Table.Body>
 				</Table.Root>
-			{:else}
-				<Empty title="No published laps yet">
-					<p>{player.display_name} has no validated hotlaps.</p>
-				</Empty>
-			{/if}
-		</Card.Content>
-	</Card.Root>
+			</TableFrame>
+		{:else}
+			<Empty title="No published laps yet">
+				<p>{player.display_name} has no validated hotlaps.</p>
+			</Empty>
+		{/if}
+	</section>
 </main>

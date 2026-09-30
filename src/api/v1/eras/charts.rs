@@ -7,7 +7,7 @@ use axum::{
 };
 use celes::Country;
 use insim_core::{track::Track, vehicle::Vehicle};
-use sea_orm::ActiveEnum;
+use sea_orm::{ActiveEnum, ConnectionTrait, DbBackend, Statement};
 use serde::{Deserialize, Serialize};
 use utoipa::{IntoParams, ToSchema};
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -15,7 +15,8 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use crate::{
     api::{
         ApiError, ApiState, ErrorResponse, Ordering, PaginatedResponse, PaginationQuery,
-        extractors as extract, v1::PlayerSummary,
+        extractors as extract,
+        v1::{PlayerSummary, hotlaps::response::RankingContribution},
     },
     models::{
         badges::PlayerBadge,
@@ -108,6 +109,8 @@ pub(crate) struct HotlapChartResponse {
     vehicle: String,
     #[serde(flatten)]
     page: PaginatedResponse<BestHotlapResponse>,
+    /// Rankings that include this combination
+    contributes_to: Vec<RankingContribution>,
 }
 
 #[utoipa::path(
@@ -141,15 +144,37 @@ pub(crate) async fn best(
         .expect("insim_core vehicle parsing is infallible")
         .ensure_hotlap_rankable()
         .map_err(|_| chart_not_found())?;
-    if !era
-        .admits_combination(&state.database, &track, &vehicle)
-        .await
-        .map_err(ApiError::database)?
-    {
-        return Err(chart_not_found());
-    }
     let track_id = track.to_string();
     let vehicle_id = vehicle.to_string();
+    let contributes_to = state
+        .database
+        .query_all_raw(Statement::from_sql_and_values(
+            DbBackend::Postgres,
+            "SELECT ranking.slug, ranking.title
+             FROM ranking_chart chart
+             JOIN ranking ON ranking.id = chart.ranking_id AND ranking.era_id = chart.era_id
+             WHERE chart.era_id = $1 AND chart.track_id = $2 AND chart.vehicle_id = $3
+             ORDER BY ranking.position, ranking.slug",
+            [
+                era.id.into(),
+                track_id.clone().into(),
+                vehicle_id.clone().into(),
+            ],
+        ))
+        .await
+        .map_err(ApiError::database)?
+        .into_iter()
+        .map(|row| {
+            Ok(RankingContribution {
+                id: row.try_get("", "slug")?,
+                title: row.try_get("", "title")?,
+            })
+        })
+        .collect::<Result<Vec<_>, sea_orm::DbErr>>()
+        .map_err(ApiError::database)?;
+    if contributes_to.is_empty() {
+        return Err(chart_not_found());
+    }
     let country = query
         .country
         .as_deref()
@@ -191,6 +216,7 @@ pub(crate) async fn best(
         era_id: era.slug,
         track: track_id,
         vehicle: vehicle_id,
+        contributes_to,
         page: PaginatedResponse {
             items: entries
                 .into_iter()

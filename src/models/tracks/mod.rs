@@ -14,10 +14,10 @@ pub use entity::{
 };
 
 use insim_core::track::Track;
-use sea_orm::{ActiveValue::Set, DatabaseConnection, EntityTrait, sea_query::OnConflict};
+use sea_orm::{ActiveValue::Set, ConnectionTrait, EntityTrait, sea_query::OnConflict};
 
 /// Synchronizes every canonical track known by this binary.
-pub(crate) async fn sync(database: &DatabaseConnection) -> Result<(), sea_orm::DbErr> {
+pub(crate) async fn sync(database: &impl ConnectionTrait) -> Result<(), sea_orm::DbErr> {
     TrackEntity::insert_many(Track::ALL.iter().enumerate().map(|(sequence, track)| {
         TrackMutation {
             id: Set(track.to_string()),

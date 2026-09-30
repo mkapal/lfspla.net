@@ -184,6 +184,10 @@ seed:
     cargo run --locked -- -c planet.yaml maintenance catalogue-sync --standard-vehicle-images-dir assets/builtin-vehicles
     cargo run --locked -- -c planet.yaml era apply assets/eras/*.yaml --yes
 
+# Deploy demo data
+demo:
+    cargo run --locked -- -c planet.yaml demo --yes
+
 # Build the backend and frontend, then deploy the site and eras with pyinfra.
 deploy:
     cargo build --locked --release

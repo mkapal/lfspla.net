@@ -51,7 +51,9 @@ const STANDARD_VEHICLES: &[(Vehicle, &str)] = &[
 
 /// Synchronizes every built-in vehicle known by this binary without touching
 /// mutable Vehicle Mods metadata.
-pub(crate) async fn sync_builtin(database: &DatabaseConnection) -> Result<(), sea_orm::DbErr> {
+pub(crate) async fn sync_builtin(
+    database: &impl sea_orm::ConnectionTrait,
+) -> Result<(), sea_orm::DbErr> {
     VehicleEntity::insert_many(STANDARD_VEHICLES.iter().enumerate().map(
         |(sequence, (vehicle, name))| {
             VehicleMutation {

@@ -5,6 +5,8 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 
 pub(crate) mod config;
+#[cfg(debug_assertions)]
+pub(crate) mod demo;
 pub(crate) mod era;
 pub(crate) mod hotlap;
 pub(crate) mod lfs;
@@ -36,6 +38,9 @@ pub struct Args {
 /// Backend process to run.
 #[derive(Clone, Debug, Eq, PartialEq, Subcommand)]
 pub enum Command {
+    /// Generate synthetic players and hotlaps for a development database.
+    #[cfg(debug_assertions)]
+    Demo(demo::DemoArgs),
     /// Print a basic YAML configuration to standard output.
     GenerateConfig(config::GenerateConfigArgs),
     /// Apply pending database schema migrations and exit.

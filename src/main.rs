@@ -34,6 +34,8 @@ async fn main() -> anyhow::Result<()> {
 
     let args = Args::parse();
     match &args.command {
+        #[cfg(debug_assertions)]
+        Command::Demo(options) => cli::demo::run(&args, options).await,
         Command::GenerateConfig(options) => cli::config::run(options),
         Command::Migrate => cli::migrate::run(&args).await,
         Command::Openapi => cli::openapi::run(),

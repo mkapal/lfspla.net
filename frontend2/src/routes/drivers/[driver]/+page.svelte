@@ -8,6 +8,7 @@
 	import Breadcrumbs from '$lib/components/app/Breadcrumbs.svelte';
 	import { dateTime, delta, lapTime } from '$lib/format.js';
 	import type { PageProps } from './$types';
+	import {Badge} from "$lib/components/ui/badge";
 
 	let { data }: PageProps = $props();
 
@@ -131,9 +132,11 @@
 										{result.track} · {result.vehicle}
 									</a>
 								</Table.Cell>
-								<Table.Cell class="text-muted-foreground"
-									>{result.era_id}</Table.Cell
-								>
+								<Table.Cell class="text-muted-foreground">
+									<Badge variant="secondary">
+										{data.eras.find((era) => era.id === result.era_id)?.title ?? result.era_id}
+									</Badge>
+								</Table.Cell>
 								<Table.Cell class="font-mono tabular-nums">
 									{lapTime(result.lap_time_ms)}
 								</Table.Cell>

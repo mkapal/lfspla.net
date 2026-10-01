@@ -2,7 +2,7 @@
 	import Info from '@lucide/svelte/icons/info';
 	import { mergeProps } from 'bits-ui';
 	import { getList, type NationContribution } from '$lib/api.js';
-	import { delta } from '$lib/format.js';
+	import { delta, relativeColor } from '$lib/format.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
@@ -126,7 +126,7 @@
 								<Table.Cell class="text-right tabular-nums"
 									>{row.contributing_charts.toLocaleString()}</Table.Cell
 								>
-								<Table.Cell class="text-right font-mono tabular-nums"
+								<Table.Cell class="text-right font-mono tabular-nums {relativeColor(row.handicap_ms, 0)}"
 									>{delta(row.handicap_ms)}</Table.Cell
 								>
 							</Table.Row>

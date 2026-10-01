@@ -70,7 +70,7 @@
 											<Table.Head>Laps</Table.Head>
 										{/if}
 										<Table.Head>Charts</Table.Head>
-										<Table.Head>Handicap</Table.Head>
+										<Table.Head class="text-right">Handicap</Table.Head>
 									</Table.Row>
 								</Table.Header>
 								<Table.Body>
@@ -103,7 +103,7 @@
 													{row.contributing_charts.toLocaleString()} / {data.nations?.total_charts.toLocaleString()}
 												</Table.Cell>
 												<Table.Cell
-													class="font-mono tabular-nums {relativeColor(
+													class="text-right font-mono tabular-nums {relativeColor(
 														row.handicap_ms,
 														0,
 													)}">{delta(row.handicap_ms)}</Table.Cell
@@ -147,7 +147,7 @@
 													{row.completed_charts.toLocaleString()} / {row.total_charts.toLocaleString()}
 												</Table.Cell>
 												<Table.Cell
-													class="font-mono tabular-nums {relativeColor(
+													class="text-right font-mono tabular-nums {relativeColor(
 														row.handicap_ms,
 														0,
 													)}">{delta(row.handicap_ms)}</Table.Cell
